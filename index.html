@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRILZHUB · Key System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">VRILZHUB</span>
+            </div>
+            <div class="nav-links">
+                <a href="#get-key" class="nav-link">Get Key</a>
+                <a href="#how" class="nav-link">How to Use</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+                <a href="admin.html" class="nav-link nav-admin">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge">✨ Free Key System</div>
+            <h1 class="hero-title">Dapatkan Key <span class="gradient-text">GRATIS</span></h1>
+            <p class="hero-subtitle">Ambil key gratis buat akses VRILZHUB. Cukup masukkan username Roblox lu.</p>
+        </div>
+    </section>
+
+    <section class="get-key" id="get-key">
+        <div class="container">
+            <div class="key-card">
+                <div class="key-header">
+                    <h2 class="key-title">🔑 Ambil Key Lu</h2>
+                    <p class="key-subtitle">Masukkan username Roblox lu</p>
+                </div>
+
+                <div class="key-body">
+                    <!-- Step 1: Input -->
+                    <div class="input-group" id="inputStep">
+                        <label class="input-label">Username Roblox</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="usernameInput" class="input-field" placeholder="Contoh: vrilz_player123" autocomplete="off">
+                            <button id="checkBtn" class="btn btn-primary">
+                                <span class="btn-text">Cek Username</span>
+                            </button>
+                        </div>
+                        <p class="input-hint" id="inputHint">Masukkan username tanpa @</p>
+                    </div>
+
+                    <!-- Step 2: Loading -->
+                    <div class="loading-step" id="loadingStep" style="display: none;">
+                        <div class="loader"></div>
+                        <p class="loading-text" id="loadingText">Mencari user...</p>
+                    </div>
+
+                    <!-- Step 3: Profile -->
+                    <div class="profile-step" id="profileStep" style="display: none;">
+                        <div class="profile-card">
+                            <img id="avatarImg" class="profile-avatar" src="" alt="Avatar">
+                            <div class="profile-info">
+                                <div class="profile-name" id="displayName">-</div>
+                                <div class="profile-username" id="username">-</div>
+                                <div class="profile-id" id="userId">-</div>
+                            </div>
+                            <div class="profile-verified">✓ Terverifikasi</div>
+                        </div>
+                        <button id="getKeyBtn" class="btn btn-success btn-block">
+                            <span class="btn-text">🎁 Ambil Key Gratis</span>
+                        </button>
+                    </div>
+
+                    <!-- Step 4: Key Result -->
+                    <div class="key-result" id="keyResult" style="display: none;">
+                        <div class="success-icon">✓</div>
+                        <h3 class="success-title">Key Berhasil Diambil!</h3>
+                        <p class="success-subtitle">Copy key di bawah ini</p>
+
+                        <div class="key-box">
+                            <code id="keyText" class="key-text">VRILZ-FREE-XXXX-XXXX-XXXX</code>
+                            <button id="copyBtn" class="copy-btn" title="Copy">📋</button>
+                        </div>
+
+                        <div class="key-info">
+                            <div class="key-info-item">
+                                <span class="key-info-label">Tipe Key</span>
+                                <span class="key-info-value" id="keyType">FREE</span>
+                            </div>
+                            <div class="key-info-item">
+                                <span class="key-info-label">Durasi</span>
+                                <span class="key-info-value" id="keyDuration">1 Hari</span>
+                            </div>
+                            <div class="key-info-item">
+                                <span class="key-info-label">Expired</span>
+                                <span class="key-info-value" id="keyExpired">-</span>
+                            </div>
+                        </div>
+
+                        <div class="key-warning">
+                            ⚠️ Key ini terikat ke akun <strong id="warnUser">-</strong>. Jangan share ke orang lain!
+                        </div>
+
+                        <button id="resetBtn" class="btn btn-secondary btn-block">
+                            🔄 Ambil Key Lagi
+                        </button>
+                    </div>
+
+                    <!-- Error -->
+                    <div class="error-step" id="errorStep" style="display: none;">
+                        <div class="error-icon">✕</div>
+                        <h3 class="error-title">Gagal</h3>
+                        <p class="error-message" id="errorMessage">Username tidak ditemukan</p>
+                        <button id="errorResetBtn" class="btn btn-secondary btn-block">
+                            🔄 Coba Lagi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how" id="how">
+        <div class="container">
+            <h2 class="section-title">📖 Cara Pakai</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">1</div>
+                    <h3 class="step-title">Ambil Key</h3>
+                    <p class="step-desc">Masukkan username Roblox lu di atas, terus klik "Ambil Key Gratis".</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">2</div>
+                    <h3 class="step-title">Copy Key</h3>
+                    <p class="step-desc">Copy key yang muncul. Jangan share ke orang lain!</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">3</div>
+                    <h3 class="step-title">Paste di Script</h3>
+                    <p class="step-desc">Buka game Ride a Pet, jalanin script, paste key di TextBox.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">4</div>
+                    <h3 class="step-title">Enjoy!</h3>
+                    <p class="step-desc">Key bakal diverifikasi otomatis. Kalau valid, lu bisa akses semua fitur.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">❓ FAQ</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <div class="faq-q">Apakah key ini gratis?</div>
+                    <div class="faq-a">Ya, 100% gratis. Lu cuma perlu masukkan username Roblox.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Berapa lama key berlaku?</div>
+                    <div class="faq-a">Key gratis berlaku 1 hari (24 jam). Bisa ambil ulang kalau expired.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Bisa dipakai di akun lain?</div>
+                    <div class="faq-a">Nggak bisa. Key terikat ke HWID device pertama kali pakai.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Kalau key expired, gimana?</div>
+                    <div class="faq-a">Tinggal ambil key baru di website ini.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">⚡ VRILZHUB</div>
+                <p class="footer-text">© 2026 VRILZHUB · Key System · Made with ⚡</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
