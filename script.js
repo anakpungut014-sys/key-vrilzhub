@@ -1,5 +1,5 @@
 // ============================================================
-// VRILZHUB KEY SYSTEM — Logic
+// VRILZHUB KEY SYSTEM — Logic v2.0
 // ============================================================
 
 const CONFIG = {
@@ -35,6 +35,7 @@ const els = {
     keyDuration: document.getElementById("keyDuration"),
     keyExpired: document.getElementById("keyExpired"),
     errorMessage: document.getElementById("errorMessage"),
+    totalKeys: document.getElementById("totalKeys"),
 };
 
 function showStep(step) {
@@ -86,7 +87,7 @@ async function handleCheckUsername() {
         els.inputHint.style.color = "var(--error)";
         return;
     }
-    els.inputHint.textContent = "Masukkan username tanpa @";
+    els.inputHint.textContent = "Username 3-20 karakter (alfanumerik + _)";
     els.inputHint.style.color = "var(--text-3)";
     showStep("loading");
     els.loadingText.textContent = "Mencari user...";
@@ -115,10 +116,7 @@ async function handleGetKey() {
         const response = await fetch(`${CONFIG.KEY_API}/api/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: currentUser.name,
-                userId: currentUser.id,
-            }),
+            body: JSON.stringify({ username: currentUser.name, userId: currentUser.id }),
         });
         const data = await response.json();
         if (!data.valid) throw new Error(data.reason || "Gagal generate key");
@@ -133,6 +131,9 @@ async function handleGetKey() {
             els.keyExpired.textContent = exp.toLocaleString("id-ID", {
                 day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
             });
+        }
+        if (els.totalKeys) {
+            els.totalKeys.textContent = parseInt(els.totalKeys.textContent || 0) + 1;
         }
         showStep("key");
     } catch (err) {
@@ -168,7 +169,7 @@ async function handleCopyKey() {
 
 function handleReset() {
     els.usernameInput.value = "";
-    els.inputHint.textContent = "Masukkan username tanpa @";
+    els.inputHint.textContent = "Username 3-20 karakter (alfanumerik + _)";
     els.inputHint.style.color = "var(--text-3)";
     currentUser = null;
     currentKey = null;
