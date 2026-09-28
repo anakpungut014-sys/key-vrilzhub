@@ -1,322 +1,267 @@
-// ============================================================
-// VRILZHUB ADMIN — Logic
-// ============================================================
-
-const CONFIG = {
-    API_URL: "https://[WORKER-URL].workers.dev", // GANTI!
-};
-
-let adminToken = null;
-let allKeys = [];
-
-// ====== ELEMENTS ======
-const els = {
-    loginSection: document.getElementById("loginSection"),
-    dashboardSection: document.getElementById("dashboardSection"),
-    logoutBtn: document.getElementById("logoutBtn"),
-    
-    adminUser: document.getElementById("adminUser"),
-    adminPass: document.getElementById("adminPass"),
-    loginBtn: document.getElementById("loginBtn"),
-    loginError: document.getElementById("loginError"),
-    
-    keyTypeSelect: document.getElementById("keyTypeSelect"),
-    customDays: document.getElementById("customDays"),
-    keyNote: document.getElementById("keyNote"),
-    createKeyBtn: document.getElementById("createKeyBtn"),
-    
-    newKeyResult: document.getElementById("newKeyResult"),
-    newKeyText: document.getElementById("newKeyText"),
-    newKeyInfo: document.getElementById("newKeyInfo"),
-    copyNewKey: document.getElementById("copyNewKey"),
-    
-    keyList: document.getElementById("keyList"),
-    keyCount: document.getElementById("keyCount"),
-    refreshBtn: document.getElementById("refreshBtn"),
-    searchKey: document.getElementById("searchKey"),
-    
-    statTotal: document.getElementById("statTotal"),
-    statFree: document.getElementById("statFree"),
-    statPremium: document.getElementById("statPremium"),
-    statVip: document.getElementById("statVip"),
-    statLifetime: document.getElementById("statLifetime"),
-};
-
-// ====== LOGIN ======
-async function handleLogin() {
-    const username = els.adminUser.value.trim();
-    const password = els.adminPass.value;
-    
-    if (!username || !password) {
-        els.loginError.textContent = "❌ Username & password wajib diisi";
-        els.loginError.style.display = "block";
-        return;
-    }
-    
-    els.loginBtn.disabled = true;
-    els.loginBtn.textContent = "⏳ Logging in...";
-    els.loginError.style.display = "none";
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/api/admin/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
-        
-        const data = await response.json();
-        
-        if (!data.valid) {
-            throw new Error(data.reason || "Login gagal");
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin · VRILZHUB Key System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .admin-body {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 24px;
         }
-        
-        adminToken = data.token;
-        localStorage.setItem("vrilz_admin_token", adminToken);
-        
-        // Show dashboard
-        els.loginSection.style.display = "none";
-        els.dashboardSection.style.display = "block";
-        els.logoutBtn.style.display = "block";
-        
-        // Load keys
-        await loadKeys();
-    } catch (err) {
-        els.loginError.textContent = "❌ " + (err.message || "Login gagal");
-        els.loginError.style.display = "block";
-    } finally {
-        els.loginBtn.disabled = false;
-        els.loginBtn.textContent = "🔓 Login";
-    }
-}
-
-// ====== LOGOUT ======
-function handleLogout() {
-    adminToken = null;
-    localStorage.removeItem("vrilz_admin_token");
-    els.loginSection.style.display = "block";
-    els.dashboardSection.style.display = "none";
-    els.logoutBtn.style.display = "none";
-    els.adminUser.value = "";
-    els.adminPass.value = "";
-}
-
-// ====== CREATE KEY ======
-async function handleCreateKey() {
-    if (!adminToken) return;
-    
-    const type = els.keyTypeSelect.value;
-    const days = els.customDays.value ? parseInt(els.customDays.value) : null;
-    const note = els.keyNote.value.trim();
-    
-    els.createKeyBtn.disabled = true;
-    els.createKeyBtn.textContent = "⏳ Generating...";
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/api/admin/create`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                token: adminToken,
-                type,
-                days,
-                note,
-            }),
-        });
-        
-        const data = await response.json();
-        
-        if (!data.valid) {
-            throw new Error(data.reason || "Gagal generate key");
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
         }
-        
-        // Show new key
-        els.newKeyResult.style.display = "block";
-        els.newKeyText.textContent = data.key;
-        
-        if (data.expires === "lifetime") {
-            els.newKeyInfo.textContent = "♾️ Lifetime · " + type.toUpperCase();
-        } else {
-            const exp = new Date(data.expires);
-            els.newKeyInfo.textContent = "📅 " + exp.toLocaleString("id-ID") + " · " + type.toUpperCase();
+        @media (max-width: 768px) {
+            .admin-grid { grid-template-columns: 1fr; }
         }
-        
-        // Refresh list
-        await loadKeys();
-        
-        // Reset form
-        els.customDays.value = "";
-        els.keyNote.value = "";
-    } catch (err) {
-        alert("❌ " + (err.message || "Gagal generate key"));
-    } finally {
-        els.createKeyBtn.disabled = false;
-        els.createKeyBtn.textContent = "🎁 Generate Key";
-    }
-}
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-2);
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .key-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .key-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius-sm);
+            gap: 12px;
+        }
+        .key-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .key-item-key {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+        .key-item-meta {
+            font-size: 11px;
+            color: var(--text-3);
+        }
+        .key-item-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-free { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .badge-premium { background: rgba(255, 59, 92, 0.2); color: var(--accent); }
+        .badge-vip { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .badge-lifetime { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        .key-item-delete {
+            padding: 8px 12px;
+            background: var(--error);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .key-item-delete:hover { background: #dc2626; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            padding: 16px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius-sm);
+            text-align: center;
+        }
+        .stat-num {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-3);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">VRILZHUB ADMIN</span>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">← Kembali</a>
+                <a href="#" class="nav-link nav-admin" id="logoutBtn" style="display: none;">Logout</a>
+            </div>
+        </div>
+    </nav>
 
-// ====== LOAD KEYS ======
-async function loadKeys() {
-    if (!adminToken) return;
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/api/admin/list`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: adminToken }),
-        });
-        
-        const data = await response.json();
-        
-        if (!data.valid) {
-            if (data.reason === "Token invalid") {
-                handleLogout();
-            }
-            throw new Error(data.reason || "Gagal load keys");
-        }
-        
-        allKeys = data.keys || [];
-        renderKeys();
-        renderStats();
-    } catch (err) {
-        console.error(err);
-    }
-}
+    <!-- Login Section -->
+    <section class="admin-body" id="loginSection">
+        <div class="container" style="max-width: 400px;">
+            <div class="key-card">
+                <div class="key-header">
+                    <h2 class="key-title">🔐 Admin Login</h2>
+                    <p class="key-subtitle">Masukkan username & password</p>
+                </div>
+                <div class="key-body">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="adminUser" placeholder="admin" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="adminPass" placeholder="••••••••">
+                    </div>
+                    <button id="loginBtn" class="btn btn-primary btn-block">🔓 Login</button>
+                    <p id="loginError" style="color: var(--error); font-size: 13px; margin-top: 12px; text-align: center; display: none;"></p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-// ====== RENDER KEYS ======
-function renderKeys() {
-    const search = els.searchKey.value.toLowerCase().trim();
-    let filtered = allKeys;
-    
-    if (search) {
-        filtered = allKeys.filter(k => 
-            k.key.toLowerCase().includes(search) ||
-            (k.username && k.username.toLowerCase().includes(search)) ||
-            (k.note && k.note.toLowerCase().includes(search))
-        );
-    }
-    
-    els.keyCount.textContent = filtered.length + " keys";
-    
-    if (filtered.length === 0) {
-        els.keyList.innerHTML = '<p style="text-align: center; color: var(--text-3); padding: 20px;">Nggak ada key</p>';
-        return;
-    }
-    
-    // Sort by createdAt desc
-    filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-    
-    els.keyList.innerHTML = filtered.map(k => {
-        const badgeClass = "badge-" + (k.type || "free");
-        const created = k.createdAt ? new Date(k.createdAt).toLocaleString("id-ID") : "-";
-        let expiredText = "";
-        if (k.expires === "lifetime") {
-            expiredText = "♾️ Lifetime";
-        } else if (k.expires) {
-            const expDate = new Date(k.expires);
-            const isExpired = expDate < Date.now();
-            expiredText = (isExpired ? "❌ Expired: " : "📅 ") + expDate.toLocaleString("id-ID");
-        }
-        
-        return `
-            <div class="key-item">
-                <div class="key-item-info">
-                    <div class="key-item-key">${k.key}</div>
-                    <div class="key-item-meta">
-                        ${expiredText}
-                        ${k.username ? " · 👤 @" + k.username : ""}
-                        ${k.note ? " · 📝 " + k.note : ""}
+    <!-- Dashboard Section -->
+    <section class="admin-body" id="dashboardSection" style="display: none;">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-num" id="statTotal">0</div>
+                <div class="stat-label">Total Keys</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statFree">0</div>
+                <div class="stat-label">Free</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statPremium">0</div>
+                <div class="stat-label">Premium</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statVip">0</div>
+                <div class="stat-label">VIP</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-num" id="statLifetime">0</div>
+                <div class="stat-label">Lifetime</div>
+            </div>
+        </div>
+
+        <div class="admin-grid">
+            <!-- Create Key -->
+            <div>
+                <div class="key-card">
+                    <div class="key-header">
+                        <h2 class="key-title">➕ Bikin Key</h2>
+                        <p class="key-subtitle">Generate key premium</p>
+                    </div>
+                    <div class="key-body">
+                        <div class="form-group">
+                            <label>Tipe Key</label>
+                            <select id="keyTypeSelect">
+                                <option value="premium">Premium (30 hari)</option>
+                                <option value="vip">VIP (90 hari)</option>
+                                <option value="lifetime">Lifetime</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Custom Durasi (hari) — opsional</label>
+                            <input type="number" id="customDays" placeholder="30" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Catatan (opsional)</label>
+                            <input type="text" id="keyNote" placeholder="Buat temen, dll">
+                        </div>
+                        <button id="createKeyBtn" class="btn btn-success btn-block">🎁 Generate Key</button>
                     </div>
                 </div>
-                <span class="key-item-badge ${badgeClass}">${(k.type || "free").toUpperCase()}</span>
-                <button class="key-item-delete" onclick="deleteKey('${k.key}')">🗑️</button>
+
+                <div class="key-card" id="newKeyResult" style="display: none; margin-top: 20px;">
+                    <div class="key-header">
+                        <h2 class="key-title">✅ Key Baru</h2>
+                    </div>
+                    <div class="key-body">
+                        <div class="key-box">
+                            <code id="newKeyText" class="key-text">-</code>
+                            <button id="copyNewKey" class="copy-btn">📋</button>
+                        </div>
+                        <p class="key-info-value" id="newKeyInfo" style="text-align: center; margin-top: 8px;">-</p>
+                    </div>
+                </div>
             </div>
-        `;
-    }).join("");
-}
 
-// ====== RENDER STATS ======
-function renderStats() {
-    const counts = { free: 0, premium: 0, vip: 0, lifetime: 0 };
-    allKeys.forEach(k => {
-        if (counts[k.type] !== undefined) counts[k.type]++;
-    });
-    
-    els.statTotal.textContent = allKeys.length;
-    els.statFree.textContent = counts.free;
-    els.statPremium.textContent = counts.premium;
-    els.statVip.textContent = counts.vip;
-    els.statLifetime.textContent = counts.lifetime;
-}
+            <!-- List Keys -->
+            <div>
+                <div class="key-card">
+                    <div class="key-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 class="key-title">📋 Semua Key</h2>
+                            <p class="key-subtitle" id="keyCount">0 keys</p>
+                        </div>
+                        <button id="refreshBtn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">🔄 Refresh</button>
+                    </div>
+                    <div class="key-body">
+                        <div class="form-group">
+                            <input type="text" id="searchKey" placeholder="🔍 Cari key..." style="padding: 10px 14px;">
+                        </div>
+                        <div class="key-list" id="keyList">
+                            <p style="text-align: center; color: var(--text-3); padding: 20px;">Belum ada key</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-// ====== DELETE KEY ======
-async function deleteKey(key) {
-    if (!confirm("Yakin mau hapus key " + key + "?")) return;
-    
-    try {
-        const response = await fetch(`${CONFIG.API_URL}/api/admin/delete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: adminToken, key }),
-        });
-        
-        const data = await response.json();
-        
-        if (!data.valid) {
-            throw new Error(data.reason || "Gagal hapus");
-        }
-        
-        await loadKeys();
-    } catch (err) {
-        alert("❌ " + (err.message || "Gagal hapus key"));
-    }
-}
-
-// ====== COPY ======
-async function copyText(text) {
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch (err) {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-        return true;
-    }
-}
-
-// ====== EVENTS ======
-els.loginBtn.addEventListener("click", handleLogin);
-els.adminPass.addEventListener("keypress", (e) => { if (e.key === "Enter") handleLogin(); });
-els.adminUser.addEventListener("keypress", (e) => { if (e.key === "Enter") handleLogin(); });
-
-els.logoutBtn.addEventListener("click", (e) => { e.preventDefault(); handleLogout(); });
-
-els.createKeyBtn.addEventListener("click", handleCreateKey);
-els.refreshBtn.addEventListener("click", loadKeys);
-els.searchKey.addEventListener("input", renderKeys);
-
-els.copyNewKey.addEventListener("click", async () => {
-    const key = els.newKeyText.textContent;
-    if (key && key !== "-") {
-        await copyText(key);
-        els.copyNewKey.textContent = "✅";
-        setTimeout(() => { els.copyNewKey.textContent = "📋"; }, 2000);
-    }
-});
-
-// ====== AUTO LOGIN ======
-(function autoLogin() {
-    const saved = localStorage.getItem("vrilz_admin_token");
-    if (saved) {
-        adminToken = saved;
-        els.loginSection.style.display = "none";
-        els.dashboardSection.style.display = "block";
-        els.logoutBtn.style.display = "block";
-        loadKeys();
-    }
-})();
-
-console.log("⚡ VRILZHUB Admin loaded");
+    <script src="admin.js"></script>
+</body>
+</html>
