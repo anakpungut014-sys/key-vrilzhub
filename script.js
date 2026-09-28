@@ -5,7 +5,7 @@
 const CONFIG = {
     ROBLOX_USER_API: "https://users.roblox.com/v1/usernames/users",
     ROBLOX_AVATAR_API: "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=",
-    KEY_API: "https://[WORKER-URL].workers.dev", // GANTI!
+    KEY_API: "https://key-vrilzhub.vrilgg76.workers.dev",
 };
 
 let currentUser = null;
