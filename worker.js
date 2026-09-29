@@ -1,9 +1,7 @@
 // ============================================================
-// VRILZHUB KEY SYSTEM — Cloudflare Worker
-// Handle: generate, validate, admin
+// VRILZHUB KEY SYSTEM — Cloudflare Worker (D1 SQLite)
 // ============================================================
 
-// ====== CONFIG ======
 const CONFIG = {
     ADMIN_USER: "admin",
     ADMIN_PASS: "vrilzhub2026", // GANTI INI!
@@ -16,14 +14,12 @@ const CONFIG = {
     VIP_DURATION_DAYS: 90,
 };
 
-// ====== CORS HEADERS ======
 const CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-// ====== HELPERS ======
 function json(data, status = 200) {
     return new Response(JSON.stringify(data), {
         status,
@@ -43,12 +39,12 @@ function generateKey(prefix, segments = 4) {
     return key;
 }
 
-function getExpiry(type) {
+function getExpiry(type, customDays = null) {
     const now = Date.now();
     if (type === "free") return now + CONFIG.FREE_DURATION_HOURS * 3600 * 1000;
-    if (type === "premium") return now + CONFIG.PREM_DURATION_DAYS * 86400 * 1000;
-    if (type === "vip") return now + CONFIG.VIP_DURATION_DAYS * 86400 * 1000;
-    if (type === "lifetime") return "lifetime";
+    if (type === "premium") return now + (customDays || CONFIG.PREM_DURATION_DAYS) * 86400 * 1000;
+    if (type === "vip") return now + (customDays || CONFIG.VIP_DURATION_DAYS) * 86400 * 1000;
+    if (type === "lifetime") return null;
     return now + 86400 * 1000;
 }
 
@@ -62,45 +58,43 @@ async function handleGenerateFree(request, env) {
         return json({ valid: false, reason: "Username & userId required" }, 400);
     }
 
-    // Cek apakah user udah pernah ambil key
-    const existingKey = await env.KEYS.get(`user:${userId}`);
-    if (existingKey) {
-        const keyData = JSON.parse(await env.KEYS.get(`key:${existingKey}`));
-        // Kalau key masih aktif, return key yang sama
-        if (keyData && (keyData.expires === "lifetime" || keyData.expires > Date.now())) {
+    const existing = await env.DB.prepare(
+        "SELECT key FROM user_keys WHERE user_id = ?"
+    ).bind(userId).first();
+
+    if (existing) {
+        const keyData = await env.DB.prepare(
+            "SELECT * FROM keys WHERE key = ?"
+        ).bind(existing.key).first();
+
+        if (keyData && (keyData.expires_at === null || keyData.expires_at > Date.now())) {
             return json({
                 valid: true,
-                key: existingKey,
+                key: existing.key,
                 type: keyData.type,
-                expires: keyData.expires,
+                expires: keyData.expires_at || "lifetime",
                 reused: true,
             });
         }
     }
 
-    // Generate key baru
     const key = generateKey(CONFIG.KEY_PREFIX_FREE);
-    const expires = getExpiry("free");
+    const expiresAt = getExpiry("free");
+    const now = Date.now();
 
-    const keyData = {
-        key,
-        type: "free",
-        userId,
-        username,
-        createdAt: Date.now(),
-        expires,
-        hwid: null,
-    };
+    await env.DB.prepare(
+        "INSERT INTO keys (key, type, user_id, username, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)"
+    ).bind(key, "free", userId, username, now, expiresAt).run();
 
-    // Simpen ke KV
-    await env.KEYS.put(`key:${key}`, JSON.stringify(keyData));
-    await env.KEYS.put(`user:${userId}`, key);
+    await env.DB.prepare(
+        "INSERT OR REPLACE INTO user_keys (user_id, key, created_at) VALUES (?, ?, ?)"
+    ).bind(userId, key, now).run();
 
     return json({
         valid: true,
         key,
         type: "free",
-        expires,
+        expires: expiresAt,
     });
 }
 
@@ -113,22 +107,22 @@ async function handleValidate(request, env) {
         return json({ valid: false, reason: "Key required" }, 400);
     }
 
-    const keyDataStr = await env.KEYS.get(`key:${key}`);
-    if (!keyDataStr) {
+    const keyData = await env.DB.prepare(
+        "SELECT * FROM keys WHERE key = ?"
+    ).bind(key).first();
+
+    if (!keyData) {
         return json({ valid: false, reason: "Key tidak ditemukan" });
     }
 
-    const keyData = JSON.parse(keyDataStr);
-
-    // Cek expired
-    if (keyData.expires !== "lifetime" && keyData.expires < Date.now()) {
+    if (keyData.expires_at !== null && keyData.expires_at < Date.now()) {
         return json({ valid: false, reason: "Key expired" });
     }
 
-    // Cek HWID (lock ke HWID pertama kali pakai)
     if (!keyData.hwid) {
-        keyData.hwid = hwid;
-        await env.KEYS.put(`key:${key}`, JSON.stringify(keyData));
+        await env.DB.prepare(
+            "UPDATE keys SET hwid = ? WHERE key = ?"
+        ).bind(hwid, key).run();
     } else if (keyData.hwid !== hwid) {
         return json({ valid: false, reason: "Key terikat ke device lain" });
     }
@@ -136,7 +130,7 @@ async function handleValidate(request, env) {
     return json({
         valid: true,
         type: keyData.type,
-        expires: keyData.expires,
+        expires: keyData.expires_at || "lifetime",
         username: keyData.username,
     });
 }
@@ -147,9 +141,14 @@ async function handleAdminLogin(request, env) {
     const password = body.password;
 
     if (username === CONFIG.ADMIN_USER && password === CONFIG.ADMIN_PASS) {
-        // Generate token
         const token = generateKey("ADMIN", 2);
-        await env.KEYS.put(`admin:${token}`, "1", { expirationTtl: 3600 }); // 1 jam
+        const now = Date.now();
+        const expiresAt = now + 3600 * 1000;
+
+        await env.DB.prepare(
+            "INSERT INTO admin_tokens (token, created_at, expires_at) VALUES (?, ?, ?)"
+        ).bind(token, now, expiresAt).run();
+
         return json({ valid: true, token });
     }
 
@@ -160,67 +159,51 @@ async function handleAdminCreate(request, env) {
     const body = await request.json();
     const token = body.token;
     const type = body.type;
-    const customDays = body.days;
+    const customDays = body.days || null;
     const note = body.note || "";
 
-    // Cek token
-    const tokenValid = await env.KEYS.get(`admin:${token}`);
-    if (!tokenValid) {
+    const tokenData = await env.DB.prepare(
+        "SELECT * FROM admin_tokens WHERE token = ? AND expires_at > ?"
+    ).bind(token, Date.now()).first();
+
+    if (!tokenData) {
         return json({ valid: false, reason: "Token invalid" }, 401);
     }
 
-    // Tentukan prefix & expiry
-    let prefix, expires;
-    if (type === "premium") {
-        prefix = CONFIG.KEY_PREFIX_PREM;
-        expires = Date.now() + (customDays || CONFIG.PREM_DURATION_DAYS) * 86400 * 1000;
-    } else if (type === "vip") {
-        prefix = CONFIG.KEY_PREFIX_VIP;
-        expires = Date.now() + (customDays || CONFIG.VIP_DURATION_DAYS) * 86400 * 1000;
-    } else if (type === "lifetime") {
-        prefix = CONFIG.KEY_PREFIX_LIFE;
-        expires = "lifetime";
-    } else {
-        return json({ valid: false, reason: "Type invalid" }, 400);
-    }
+    let prefix;
+    if (type === "premium") prefix = CONFIG.KEY_PREFIX_PREM;
+    else if (type === "vip") prefix = CONFIG.KEY_PREFIX_VIP;
+    else if (type === "lifetime") prefix = CONFIG.KEY_PREFIX_LIFE;
+    else return json({ valid: false, reason: "Type invalid" }, 400);
 
     const key = generateKey(prefix);
-    const keyData = {
-        key,
-        type,
-        createdAt: Date.now(),
-        expires,
-        hwid: null,
-        note,
-    };
+    const now = Date.now();
+    const expiresAt = getExpiry(type, customDays);
 
-    await env.KEYS.put(`key:${key}`, JSON.stringify(keyData));
+    await env.DB.prepare(
+        "INSERT INTO keys (key, type, created_at, expires_at, note) VALUES (?, ?, ?, ?, ?)"
+    ).bind(key, type, now, expiresAt, note).run();
 
-    return json({ valid: true, key, type, expires });
+    return json({ valid: true, key, type, expires: expiresAt || "lifetime" });
 }
 
 async function handleAdminList(request, env) {
     const body = await request.json();
     const token = body.token;
 
-    const tokenValid = await env.KEYS.get(`admin:${token}`);
-    if (!tokenValid) {
+    const tokenData = await env.DB.prepare(
+        "SELECT * FROM admin_tokens WHERE token = ? AND expires_at > ?"
+    ).bind(token, Date.now()).first();
+
+    if (!tokenData) {
         return json({ valid: false, reason: "Token invalid" }, 401);
     }
 
-    // List semua key (max 100)
-    const keys = [];
-    let cursor = null;
-    const list = await env.KEYS.list({ limit: 100 });
-    
-    for (const k of list.keys) {
-        if (k.name.startsWith("key:")) {
-            const data = await env.KEYS.get(k.name);
-            keys.push(JSON.parse(data));
-        }
-    }
+    const result = await env.DB.prepare(
+        "SELECT * FROM keys ORDER BY created_at DESC LIMIT 100"
+    ).all();
 
-    return json({ valid: true, keys });
+    return json({ valid: true, keys: result.results || [] });
 }
 
 async function handleAdminDelete(request, env) {
@@ -228,19 +211,21 @@ async function handleAdminDelete(request, env) {
     const token = body.token;
     const key = body.key;
 
-    const tokenValid = await env.KEYS.get(`admin:${token}`);
-    if (!tokenValid) {
+    const tokenData = await env.DB.prepare(
+        "SELECT * FROM admin_tokens WHERE token = ? AND expires_at > ?"
+    ).bind(token, Date.now()).first();
+
+    if (!tokenData) {
         return json({ valid: false, reason: "Token invalid" }, 401);
     }
 
-    await env.KEYS.delete(`key:${key}`);
+    await env.DB.prepare("DELETE FROM keys WHERE key = ?").bind(key).run();
     return json({ valid: true });
 }
 
 // ====== MAIN HANDLER ======
 export default {
     async fetch(request, env, ctx) {
-        // CORS preflight
         if (request.method === "OPTIONS") {
             return new Response(null, { headers: CORS });
         }
@@ -249,15 +234,12 @@ export default {
         const path = url.pathname;
 
         try {
-            // User routes
             if (path === "/api/generate" && request.method === "POST") {
                 return await handleGenerateFree(request, env);
             }
             if (path === "/api/validate" && request.method === "POST") {
                 return await handleValidate(request, env);
             }
-            
-            // Admin routes
             if (path === "/api/admin/login" && request.method === "POST") {
                 return await handleAdminLogin(request, env);
             }
