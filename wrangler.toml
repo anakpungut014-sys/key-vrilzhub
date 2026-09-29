@@ -1,9 +1,0 @@
-name = "key-vrilzhub"
-main = "worker.js"
-compatibility_date = "2024-01-01"
-workers_dev = true
-
-[[d1_databases]]
-binding = "DB"
-database_name = "vrilzhub_keys"
-database_id = "686b8507-eb87-4fe8-aa33-33b4898dbc12"
