@@ -3,6 +3,7 @@ main = "worker.js"
 compatibility_date = "2024-01-01"
 workers_dev = true
 
-[[kv_namespaces]]
-binding = "KEYS"
-id = "f36f85099dc84fe29ab569ef557a0d6b"
+[[d1_databases]]
+binding = "DB"
+database_name = "vrilzhub_keys"
+database_id = "bb7cd097-6692-4955-b3ec-e27e952cdf75"
