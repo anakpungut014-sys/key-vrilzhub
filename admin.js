@@ -1,5 +1,5 @@
 // ============================================================
-// VRILZHUB ADMIN — Logic
+// VRILZHUB ADMIN — Logic (D1 Compatible)
 // ============================================================
 
 const CONFIG = {
@@ -97,7 +97,7 @@ async function handleCreateKey() {
         if (!data.valid) throw new Error(data.reason || "Gagal generate key");
         els.newKeyResult.style.display = "block";
         els.newKeyText.textContent = data.key;
-        if (data.expires === "lifetime") {
+        if (!data.expires || data.expires === "lifetime") {
             els.newKeyInfo.textContent = "♾️ Lifetime · " + type.toUpperCase();
         } else {
             const exp = new Date(data.expires);
@@ -140,7 +140,7 @@ function renderKeys() {
     let filtered = allKeys;
     if (search) {
         filtered = allKeys.filter(k => 
-            k.key.toLowerCase().includes(search) ||
+            (k.key || "").toLowerCase().includes(search) ||
             (k.username && k.username.toLowerCase().includes(search)) ||
             (k.note && k.note.toLowerCase().includes(search))
         );
@@ -150,14 +150,14 @@ function renderKeys() {
         els.keyList.innerHTML = '<p style="text-align: center; color: var(--text-3); padding: 20px;">Nggak ada key</p>';
         return;
     }
-    filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    filtered.sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
     els.keyList.innerHTML = filtered.map(k => {
         const badgeClass = "badge-" + (k.type || "free");
         let expiredText = "";
-        if (k.expires === "lifetime") {
+        if (!k.expires_at) {
             expiredText = "♾️ Lifetime";
-        } else if (k.expires) {
-            const expDate = new Date(k.expires);
+        } else {
+            const expDate = new Date(k.expires_at);
             const isExpired = expDate < Date.now();
             expiredText = (isExpired ? "❌ Expired: " : "📅 ") + expDate.toLocaleString("id-ID");
         }
