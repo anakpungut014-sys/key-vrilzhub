@@ -1,5 +1,6 @@
 // ============================================================
-// VRILZHUB KEY SYSTEM — Cloudflare Worker (D1 SQLite)
+// VRILZHUB KEY SYSTEM — Cloudflare Worker (Simplified)
+// Tanpa avatar. Langsung generate key. HWID lock.
 // ============================================================
 
 const CONFIG = {
@@ -48,8 +49,8 @@ function getExpiry(type, customDays = null) {
     return now + 86400 * 1000;
 }
 
-// ====== PROXY ROBLOX API ======
-async function handleRobloxUser(request) {
+// ====== GENERATE (Tanpa Roblox API) ======
+async function handleGenerateFree(request, env) {
     const body = await request.json();
     const username = (body.username || "").trim();
 
@@ -57,69 +58,14 @@ async function handleRobloxUser(request) {
         return json({ valid: false, reason: "Username required" }, 400);
     }
 
-    try {
-        const response = await fetch("https://users.roblox.com/v1/usernames/users", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                usernames: [username],
-                excludeBannedUsers: false,
-            }),
-        });
-
-        if (!response.ok) {
-            return json({ valid: false, reason: "Roblox API error" }, 500);
-        }
-
-        const data = await response.json();
-
-        if (!data.data || data.data.length === 0) {
-            return json({ valid: false, reason: "Username tidak ditemukan" }, 404);
-        }
-
-        const user = data.data[0];
-
-        // Ambil avatar
-        let avatarUrl = "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-default-Png/150/150/AvatarHeadshot/Png/noFilter";
-        try {
-            const avatarRes = await fetch(
-                `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=150x150&format=Png&isCircular=false`
-            );
-            const avatarData = await avatarRes.json();
-            if (avatarData.data && avatarData.data.length > 0 && avatarData.data[0].imageUrl) {
-                avatarUrl = avatarData.data[0].imageUrl;
-            }
-        } catch (e) {
-            // Fallback
-        }
-
-        return json({
-            valid: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                displayName: user.displayName,
-                avatar: avatarUrl,
-            },
-        });
-    } catch (err) {
-        return json({ valid: false, reason: err.message }, 500);
-    }
-}
-
-// ====== ROUTES ======
-async function handleGenerateFree(request, env) {
-    const body = await request.json();
-    const username = (body.username || "").trim();
-    const userId = body.userId;
-
-    if (!username || !userId) {
-        return json({ valid: false, reason: "Username & userId required" }, 400);
+    if (username.length < 3 || username.length > 20) {
+        return json({ valid: false, reason: "Username 3-20 karakter" }, 400);
     }
 
+    // Cek existing key by username
     const existing = await env.DB.prepare(
         "SELECT key FROM user_keys WHERE user_id = ?"
-    ).bind(userId).first();
+    ).bind(username.toLowerCase()).first();
 
     if (existing) {
         const keyData = await env.DB.prepare(
@@ -143,15 +89,16 @@ async function handleGenerateFree(request, env) {
 
     await env.DB.prepare(
         "INSERT INTO keys (key, type, user_id, username, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)"
-    ).bind(key, "free", userId, username, now, expiresAt).run();
+    ).bind(key, "free", username.toLowerCase(), username, now, expiresAt).run();
 
     await env.DB.prepare(
         "INSERT OR REPLACE INTO user_keys (user_id, key, created_at) VALUES (?, ?, ?)"
-    ).bind(userId, key, now).run();
+    ).bind(username.toLowerCase(), key, now).run();
 
     return json({ valid: true, key, type: "free", expires: expiresAt });
 }
 
+// ====== VALIDATE (HWID Lock) ======
 async function handleValidate(request, env) {
     const body = await request.json();
     const key = (body.key || "").trim();
@@ -159,6 +106,10 @@ async function handleValidate(request, env) {
 
     if (!key) {
         return json({ valid: false, reason: "Key required" }, 400);
+    }
+
+    if (!hwid) {
+        return json({ valid: false, reason: "HWID required" }, 400);
     }
 
     const keyData = await env.DB.prepare(
@@ -173,10 +124,20 @@ async function handleValidate(request, env) {
         return json({ valid: false, reason: "Key expired" });
     }
 
+    // HWID lock
     if (!keyData.hwid) {
+        // Key baru — lock ke HWID ini
         await env.DB.prepare(
             "UPDATE keys SET hwid = ? WHERE key = ?"
         ).bind(hwid, key).run();
+
+        return json({
+            valid: true,
+            type: keyData.type,
+            expires: keyData.expires_at || "lifetime",
+            username: keyData.username,
+            locked: true,
+        });
     } else if (keyData.hwid !== hwid) {
         return json({ valid: false, reason: "Key terikat ke device lain" });
     }
@@ -189,6 +150,7 @@ async function handleValidate(request, env) {
     });
 }
 
+// ====== ADMIN ======
 async function handleAdminLogin(request, env) {
     const body = await request.json();
     const username = body.username;
@@ -287,11 +249,6 @@ export default {
         const path = url.pathname;
 
         try {
-            // Roblox API proxy
-            if (path === "/api/roblox/user" && request.method === "POST") {
-                return await handleRobloxUser(request);
-            }
-
             if (path === "/api/generate" && request.method === "POST") {
                 return await handleGenerateFree(request, env);
             }
