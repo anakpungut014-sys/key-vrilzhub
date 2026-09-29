@@ -5,73 +5,101 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin · VRILZHUB</title>
 <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-.admin-body { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+.admin-wrap { max-width: 700px; margin: 40px auto; padding: 0 24px; }
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; }
-.form-group input, .form-group select { width: 100%; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; }
+.form-group label { display: block; font-size: 12px; font-weight: 800; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.form-group input, .form-group select {
+  width: 100%; padding: 12px 14px;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--radius-sm); color: var(--text);
+  font-size: 14px; font-family: inherit; outline: none;
+}
 .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
 .key-list { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
-.key-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); gap: 12px; }
-.key-item-key { font-family: monospace; font-size: 13px; font-weight: 800; color: var(--accent); }
-.key-item-badge { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; background: rgba(255,51,102,0.2); color: var(--accent); }
-.key-item-delete { padding: 6px 10px; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; }
+.key-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px; background: var(--surface-2);
+  border: 1px solid var(--border-2); border-radius: var(--radius-sm); gap: 12px;
+}
+.key-item-key { font-family: monospace; font-size: 13px; font-weight: 800; color: var(--accent); word-break: break-all; }
+.key-item-meta { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.key-item-badge { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; background: rgba(255,51,102,0.2); color: var(--accent); text-transform: uppercase; }
+.key-item-del { padding: 6px 10px; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat { padding: 14px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); text-align: center; }
+.stat-num { font-size: 22px; font-weight: 900; color: var(--accent); }
+.stat-lbl { font-size: 10px; color: var(--text-3); text-transform: uppercase; font-weight: 800; }
+@media (max-width: 600px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 <nav class="navbar">
-<div class="nav-container">
-<div class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">VRILZHUB ADMIN</span></div>
-<div class="nav-links"><a href="index.html" class="nav-link">← Kembali</a><a href="#" class="nav-link" id="logoutBtn" style="display:none;">Logout</a></div>
-</div>
+  <div class="nav-container">
+    <div class="nav-logo">⚡ VRILZHUB ADMIN</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">← Kembali</a>
+      <a href="#" class="nav-link" id="logoutBtn" style="display:none;">Logout</a>
+    </div>
+  </div>
 </nav>
 
-<section class="admin-body" id="loginSection">
-<div class="key-card" style="max-width:400px; margin:40px auto;">
-<div class="step-content">
-<div class="step-icon">🔐</div>
-<h3 class="step-title">Admin Login</h3>
-<div class="form-group"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
-<div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••"></div>
-<button id="loginBtn" class="btn btn-primary btn-block">🔓 Login</button>
-<p id="loginError" style="color:var(--error); font-size:13px; margin-top:12px; text-align:center; display:none;"></p>
-</div>
-</div>
+<section class="admin-wrap" id="loginSection">
+  <div class="card" style="max-width: 400px; margin: 40px auto;">
+    <div class="step">
+      <div class="step-icon">🔐</div>
+      <h2 class="step-title">Admin Login</h2>
+      <p class="step-desc">Masukkan username & password</p>
+      <div class="form-group"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••"></div>
+      <button id="loginBtn" class="btn btn-primary btn-block">🔓 Login</button>
+      <p id="loginError" style="color:var(--error); font-size:13px; margin-top:12px; text-align:center; display:none;"></p>
+    </div>
+  </div>
 </section>
 
-<section class="admin-body" id="dashboardSection" style="display:none;">
-<div class="key-card">
-<div class="step-content">
-<div class="step-icon">➕</div>
-<h3 class="step-title">Bikin Key Premium</h3>
-<div class="form-group">
-<label>Tipe Key</label>
-<select id="keyTypeSelect">
-<option value="premium">Premium (30 hari)</option>
-<option value="vip">VIP (90 hari)</option>
-<option value="lifetime">Lifetime</option>
-</select>
-</div>
-<div class="form-group"><label>Catatan (opsional)</label><input type="text" id="keyNote" placeholder="Buat temen, dll"></div>
-<button id="createKeyBtn" class="btn btn-success btn-block">🎁 Generate Key</button>
-<div id="newKeyResult" style="display:none; margin-top:20px;">
-<div class="key-box">
-<code id="newKeyText" class="key-text">-</code>
-<button id="copyNewKey" class="copy-btn">📋</button>
-</div>
-<p style="text-align:center; margin-top:8px; font-size:12px; color:var(--text-3);" id="newKeyInfo">-</p>
-</div>
-</div>
-</div>
+<section class="admin-wrap" id="dashboardSection" style="display:none;">
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total</div></div>
+    <div class="stat"><div class="stat-num" id="statFree">0</div><div class="stat-lbl">Free</div></div>
+    <div class="stat"><div class="stat-num" id="statPrem">0</div><div class="stat-lbl">Premium</div></div>
+    <div class="stat"><div class="stat-num" id="statVip">0</div><div class="stat-lbl">VIP</div></div>
+  </div>
 
-<div class="key-card" style="margin-top:20px;">
-<div class="step-content">
-<h3 class="step-title" style="text-align:left;">📋 Key yang Udah Dibikin</h3>
-<p style="font-size:12px; color:var(--text-3); margin-bottom:12px;">Disimpen di browser kamu. Kalau ganti browser, hilang.</p>
-<div class="key-list" id="keyList"></div>
-</div>
-</div>
+  <div class="card" style="padding: 24px;">
+    <div class="step">
+      <div class="step-icon">➕</div>
+      <h2 class="step-title">Bikin Key Premium</h2>
+      <div class="form-group">
+        <label>Tipe Key</label>
+        <select id="keyTypeSelect">
+          <option value="premium">Premium (30 hari)</option>
+          <option value="vip">VIP (90 hari)</option>
+          <option value="lifetime">Lifetime</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Catatan (opsional)</label><input type="text" id="keyNote" placeholder="Buat temen, dll"></div>
+      <button id="createKeyBtn" class="btn btn-primary btn-block">🎁 Generate Key</button>
+      <div id="newKeyResult" style="display:none; margin-top:20px;">
+        <div class="key-box">
+          <code id="newKeyText" class="key-text">-</code>
+          <button id="copyNewKey" class="copy-btn">📋</button>
+        </div>
+        <p style="text-align:center; font-size:12px; color:var(--text-3);" id="newKeyInfo">-</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding: 24px; margin-top: 20px;">
+    <div class="step">
+      <h2 class="step-title" style="text-align:left;">📋 Semua Key</h2>
+      <div class="form-group" style="margin-top:12px;">
+        <input type="text" id="searchKey" placeholder="🔍 Cari key..." style="padding:10px 14px;">
+      </div>
+      <div class="key-list" id="keyList"></div>
+    </div>
+  </div>
 </section>
 
 <script src="admin.js"></script>
