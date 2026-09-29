@@ -5,79 +5,74 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VRILZHUB · Key System</title>
 <link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar">
-<div class="nav-container">
-<div class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">VRILZHUB</span></div>
-<div class="nav-links">
-<a href="#get-key" class="nav-link">🔑 Get Key</a>
-<a href="admin.html" class="nav-link">🔒 Admin</a>
-</div>
-</div>
+  <div class="nav-container">
+    <div class="nav-logo">⚡ VRILZHUB</div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">🔑 Get Key</a>
+      <a href="admin.html" class="nav-link">🔒 Admin</a>
+    </div>
+  </div>
 </nav>
+
 <section class="hero">
-<div class="hero-bg"></div>
-<div class="hero-content">
-<div class="hero-badge"><span class="badge-dot"></span><span>Key System Online</span></div>
-<h1 class="hero-title">Ambil Key <span class="gradient-text">GRATIS</span><br>Buat Akses <span class="gradient-text-2">VRILZHUB</span></h1>
-<p class="hero-subtitle">Dapetin key gratis dalam 30 detik. Cukup masukkan username Roblox lu.</p>
-</div>
+  <div class="hero-badge">● Key System Online</div>
+  <h1 class="hero-title">Ambil Key <span class="grad">GRATIS</span><br>Buat Akses <span class="grad2">VRILZHUB</span></h1>
+  <p class="hero-sub">Dapetin key gratis dalam 30 detik. Cukup masukkan username Roblox lu.</p>
 </section>
-<section class="get-key" id="get-key">
-<div class="container">
-<div class="section-header">
-<div class="section-badge">STEP 1</div>
-<h2 class="section-title">Ambil Key Gratis</h2>
-<p class="section-subtitle">Masukkan username Roblox lu buat dapet key</p>
-</div>
-<div class="key-card">
-<div class="key-card-glow"></div>
-<div class="step-content" id="inputStep">
-<div class="step-icon">👤</div>
-<h3 class="step-title">Username Roblox</h3>
-<p class="step-desc">Masukkan username tanpa @</p>
-<div class="input-wrapper">
-<input type="text" id="usernameInput" class="input-field" placeholder="vrilz_player123" autocomplete="off">
-<button id="checkBtn" class="btn btn-primary"><span class="btn-text">🎁 Ambil Key Gratis</span></button>
-</div>
-<p class="input-hint" id="inputHint">Username 3-20 karakter (alfanumerik + _)</p>
-</div>
-<div class="step-content loading-step" id="loadingStep" style="display:none;">
-<div class="loader"></div>
-<p class="loading-text">Generating key...</p>
-</div>
-<div class="step-content key-result" id="keyResult" style="display:none;">
-<div class="success-icon">✓</div>
-<h3 class="success-title">Key Berhasil Diambil!</h3>
-<p class="success-subtitle">Copy key di bawah ini</p>
-<div class="key-box">
-<code id="keyText" class="key-text">VRILZ-FREE-XXXX</code>
-<button id="copyBtn" class="copy-btn">📋</button>
-</div>
-<div class="key-info">
-<div class="key-info-item"><span class="key-info-label">Tipe</span><span class="key-info-value" id="keyType">FREE</span></div>
-<div class="key-info-item"><span class="key-info-label">Durasi</span><span class="key-info-value" id="keyDuration">1 Hari</span></div>
-<div class="key-info-item"><span class="key-info-label">Expired</span><span class="key-info-value" id="keyExpired">-</span></div>
-</div>
-<div class="key-warning">⚠️ Key terikat ke akun <strong id="warnUser">-</strong>. Jangan share!</div>
-<button id="resetBtn" class="btn btn-secondary btn-block">🔄 Ambil Key Lagi</button>
-</div>
-<div class="step-content" id="errorStep" style="display:none;">
-<div class="error-icon">✕</div>
-<h3 class="error-title">Gagal</h3>
-<p class="error-message" id="errorMessage">Username tidak valid</p>
-<button id="errorResetBtn" class="btn btn-secondary btn-block">🔄 Coba Lagi</button>
-</div>
-</div>
-</div>
+
+<section class="section">
+  <div class="card">
+    <div class="card-glow"></div>
+
+    <div class="step" id="inputStep">
+      <div class="step-icon">👤</div>
+      <h2 class="step-title">Username Roblox</h2>
+      <p class="step-desc">Masukkan username tanpa @</p>
+      <div class="input-row">
+        <input type="text" id="usernameInput" class="input" placeholder="vrilz_player123" autocomplete="off">
+        <button id="checkBtn" class="btn btn-primary">🎁 Ambil Key</button>
+      </div>
+      <p class="hint" id="inputHint">Username 3-20 karakter (huruf, angka, _)</p>
+    </div>
+
+    <div class="step" id="loadingStep" style="display:none;">
+      <div class="loader"></div>
+      <p class="loading-text">Generating key...</p>
+    </div>
+
+    <div class="step" id="keyResult" style="display:none;">
+      <div class="success-icon">✓</div>
+      <h2 class="success-title">Key Berhasil Diambil!</h2>
+      <p class="step-desc">Copy key di bawah ini</p>
+      <div class="key-box">
+        <code id="keyText" class="key-text">VRILZ-FREE-XXXX</code>
+        <button id="copyBtn" class="copy-btn">📋</button>
+      </div>
+      <div class="key-info">
+        <div class="info-item"><span class="info-label">Tipe</span><span class="info-value" id="keyType">FREE</span></div>
+        <div class="info-item"><span class="info-label">Durasi</span><span class="info-value" id="keyDuration">30 menit</span></div>
+        <div class="info-item"><span class="info-label">Expired</span><span class="info-value" id="keyExpired">-</span></div>
+      </div>
+      <div class="warning">⚠️ Key terikat ke akun <strong id="warnUser">-</strong>. Jangan share!</div>
+      <button id="resetBtn" class="btn btn-secondary btn-block">🔄 Ambil Key Lagi</button>
+    </div>
+
+    <div class="step" id="errorStep" style="display:none;">
+      <div class="error-icon">✕</div>
+      <h2 class="error-title">Gagal</h2>
+      <p class="error-message" id="errorMessage">Username tidak valid</p>
+      <button id="errorResetBtn" class="btn btn-secondary btn-block">🔄 Coba Lagi</button>
+    </div>
+
+  </div>
 </section>
-<footer class="footer">
-<div class="container">
-<div class="footer-bottom">© 2026 VRILZHUB · Made with ⚡</div>
-</div>
-</footer>
+
+<footer class="footer">© 2026 VRILZHUB · Made with ⚡</footer>
+
 <script src="script.js"></script>
 </body>
 </html>
