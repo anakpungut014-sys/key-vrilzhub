@@ -71,6 +71,7 @@
             <div class="key-card">
                 <div class="key-card-glow"></div>
                 
+                <!-- Input Username -->
                 <div class="step-content" id="inputStep">
                     <div class="step-icon">👤</div>
                     <h3 class="step-title">Username Roblox</h3>
@@ -78,32 +79,19 @@
                     <div class="input-wrapper">
                         <input type="text" id="usernameInput" class="input-field" placeholder="vrilz_player123" autocomplete="off">
                         <button id="checkBtn" class="btn btn-primary">
-                            <span class="btn-text">Cek Username</span>
+                            <span class="btn-text">🎁 Ambil Key Gratis</span>
                         </button>
                     </div>
                     <p class="input-hint" id="inputHint">Username 3-20 karakter (alfanumerik + _)</p>
                 </div>
 
+                <!-- Loading -->
                 <div class="step-content loading-step" id="loadingStep" style="display: none;">
                     <div class="loader"></div>
-                    <p class="loading-text" id="loadingText">Mencari user...</p>
+                    <p class="loading-text" id="loadingText">Generating key...</p>
                 </div>
 
-                <div class="step-content" id="profileStep" style="display: none;">
-                    <div class="profile-card">
-                        <img id="avatarImg" class="profile-avatar" src="" alt="Avatar">
-                        <div class="profile-info">
-                            <div class="profile-name" id="displayName">-</div>
-                            <div class="profile-username" id="username">-</div>
-                            <div class="profile-id" id="userId">-</div>
-                        </div>
-                        <div class="profile-verified">✓</div>
-                    </div>
-                    <button id="getKeyBtn" class="btn btn-success btn-block btn-lg">
-                        <span class="btn-text">🎁 Ambil Key Gratis</span>
-                    </button>
-                </div>
-
+                <!-- Key Result -->
                 <div class="step-content key-result" id="keyResult" style="display: none;">
                     <div class="success-icon">✓</div>
                     <h3 class="success-title">Key Berhasil Diambil!</h3>
@@ -138,10 +126,11 @@
                     </button>
                 </div>
 
+                <!-- Error -->
                 <div class="step-content" id="errorStep" style="display: none;">
                     <div class="error-icon">✕</div>
                     <h3 class="error-title">Gagal</h3>
-                    <p class="error-message" id="errorMessage">Username tidak ditemukan</p>
+                    <p class="error-message" id="errorMessage">Username tidak valid</p>
                     <button id="errorResetBtn" class="btn btn-secondary btn-block">
                         🔄 Coba Lagi
                     </button>
@@ -191,7 +180,7 @@
                         <div class="pricing-price">
                             <span class="price-currency">Rp</span>
                             <span class="price-amount">15</span>
-                            <span class="price-period">K / 7 hari</span>
+                            <span class="price-period">K / 30 hari</span>
                         </div>
                     </div>
                     <ul class="pricing-features">
@@ -214,7 +203,7 @@
                         <div class="pricing-price">
                             <span class="price-currency">Rp</span>
                             <span class="price-amount">35</span>
-                            <span class="price-period">K / 29 hari</span>
+                            <span class="price-period">K / 90 hari</span>
                         </div>
                     </div>
                     <ul class="pricing-features">
