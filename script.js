@@ -124,7 +124,7 @@ async function handleGetKey() {
         els.keyText.textContent = data.key;
         els.keyType.textContent = data.type.toUpperCase();
         els.keyDuration.textContent = data.type === "free" ? "1 Hari" : data.type;
-        if (data.expires === "lifetime") {
+        if (data.expires === "lifetime" || !data.expires) {
             els.keyExpired.textContent = "Never";
         } else {
             const exp = new Date(data.expires);
