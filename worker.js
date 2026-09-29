@@ -4,7 +4,7 @@
 
 const CONFIG = {
     ADMIN_USER: "admin",
-    ADMIN_PASS: "vrilzhub2026", // GANTI INI!
+    ADMIN_PASS: "vrilzhub2026",
     KEY_PREFIX_FREE: "VRILZ-FREE",
     KEY_PREFIX_PREM: "VRILZ-PREM",
     KEY_PREFIX_VIP: "VRILZ-VIP",
@@ -48,7 +48,6 @@ function getExpiry(type, customDays = null) {
     return now + 86400 * 1000;
 }
 
-// ====== ROUTES ======
 async function handleGenerateFree(request, env) {
     const body = await request.json();
     const username = (body.username || "").trim();
@@ -90,12 +89,7 @@ async function handleGenerateFree(request, env) {
         "INSERT OR REPLACE INTO user_keys (user_id, key, created_at) VALUES (?, ?, ?)"
     ).bind(userId, key, now).run();
 
-    return json({
-        valid: true,
-        key,
-        type: "free",
-        expires: expiresAt,
-    });
+    return json({ valid: true, key, type: "free", expires: expiresAt });
 }
 
 async function handleValidate(request, env) {
@@ -223,7 +217,6 @@ async function handleAdminDelete(request, env) {
     return json({ valid: true });
 }
 
-// ====== MAIN HANDLER ======
 export default {
     async fetch(request, env, ctx) {
         if (request.method === "OPTIONS") {
