@@ -6,4 +6,4 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "vrilzhub_keys"
-database_id = "bb7cd097-6692-4955-b3ec-e27e952cdf75"
+database_id = "686b8507-eb87-4fe8-aa33-33b4898dbc12"
