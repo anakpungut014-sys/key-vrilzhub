@@ -3,7 +3,7 @@
 // ============================================================
 
 const CONFIG = {
-    API_URL: "https://key-vrilzhub.vrilgg76.workers.dev",
+    API_URL: "https://vrilzhub-keys.anakpungut014.workers.dev",
 };
 
 let adminToken = null;
