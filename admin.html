@@ -1,152 +1,79 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin · VRILZHUB Key System</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        .admin-body { max-width: 1200px; margin: 40px auto; padding: 0 24px; }
-        .admin-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 12px 14px; background: var(--surface-2);
-            border: 1px solid var(--border-2); border-radius: var(--radius-sm);
-            color: var(--text); font-size: 14px; font-family: inherit; outline: none;
-        }
-        .form-group input:focus, .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-        .key-list { display: flex; flex-direction: column; gap: 8px; max-height: 600px; overflow-y: auto; }
-        .key-item {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 14px 18px; background: var(--surface-2);
-            border: 1px solid var(--border-2); border-radius: var(--radius-sm); gap: 12px;
-        }
-        .key-item-info { flex: 1; min-width: 0; }
-        .key-item-key { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 800; color: var(--accent); margin-bottom: 4px; word-break: break-all; }
-        .key-item-meta { font-size: 11px; color: var(--text-3); }
-        .key-item-badge { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-        .badge-free { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .badge-premium { background: rgba(255, 51, 102, 0.2); color: var(--accent); }
-        .badge-vip { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-        .badge-lifetime { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
-        .key-item-delete { padding: 8px 12px; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; font-weight: 800; }
-        .key-item-delete:hover { background: #dc2626; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .stat-card { padding: 16px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); text-align: center; }
-        .stat-num { font-size: 24px; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
-        .stat-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; font-weight: 800; }
-        @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · VRILZHUB</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+.admin-body { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; }
+.form-group input, .form-group select { width: 100%; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); color: var(--text); font-size: 14px; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.key-list { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.key-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius-sm); gap: 12px; }
+.key-item-key { font-family: monospace; font-size: 13px; font-weight: 800; color: var(--accent); }
+.key-item-badge { padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; background: rgba(255,51,102,0.2); color: var(--accent); }
+.key-item-delete { padding: 6px 10px; background: var(--error); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; }
+</style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-text">VRILZHUB ADMIN</span>
-            </div>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">← Kembali</a>
-                <a href="#" class="nav-link" id="logoutBtn" style="display: none;">Logout</a>
-            </div>
-        </div>
-    </nav>
+<nav class="navbar">
+<div class="nav-container">
+<div class="nav-logo"><span class="logo-icon">⚡</span><span class="logo-text">VRILZHUB ADMIN</span></div>
+<div class="nav-links"><a href="index.html" class="nav-link">← Kembali</a><a href="#" class="nav-link" id="logoutBtn" style="display:none;">Logout</a></div>
+</div>
+</nav>
 
-    <section class="admin-body" id="loginSection">
-        <div class="container" style="max-width: 400px;">
-            <div class="key-card">
-                <div class="key-card-glow"></div>
-                <div class="step-content">
-                    <div class="step-icon">🔐</div>
-                    <h3 class="step-title">Admin Login</h3>
-                    <p class="step-desc">Masukkan username & password</p>
-                    <div class="form-group">
-                        <label>Username</label>
-                        <input type="text" id="adminUser" placeholder="admin" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="adminPass" placeholder="••••••••">
-                    </div>
-                    <button id="loginBtn" class="btn btn-primary btn-block">🔓 Login</button>
-                    <p id="loginError" style="color: var(--error); font-size: 13px; margin-top: 12px; text-align: center; display: none;"></p>
-                </div>
-            </div>
-        </div>
-    </section>
+<section class="admin-body" id="loginSection">
+<div class="key-card" style="max-width:400px; margin:40px auto;">
+<div class="step-content">
+<div class="step-icon">🔐</div>
+<h3 class="step-title">Admin Login</h3>
+<div class="form-group"><label>Username</label><input type="text" id="adminUser" placeholder="admin"></div>
+<div class="form-group"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••"></div>
+<button id="loginBtn" class="btn btn-primary btn-block">🔓 Login</button>
+<p id="loginError" style="color:var(--error); font-size:13px; margin-top:12px; text-align:center; display:none;"></p>
+</div>
+</div>
+</section>
 
-    <section class="admin-body" id="dashboardSection" style="display: none;">
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Keys</div></div>
-            <div class="stat-card"><div class="stat-num" id="statFree">0</div><div class="stat-label">Free</div></div>
-            <div class="stat-card"><div class="stat-num" id="statPremium">0</div><div class="stat-label">Premium</div></div>
-            <div class="stat-card"><div class="stat-num" id="statVip">0</div><div class="stat-label">VIP</div></div>
-            <div class="stat-card"><div class="stat-num" id="statLifetime">0</div><div class="stat-label">Lifetime</div></div>
-        </div>
+<section class="admin-body" id="dashboardSection" style="display:none;">
+<div class="key-card">
+<div class="step-content">
+<div class="step-icon">➕</div>
+<h3 class="step-title">Bikin Key Premium</h3>
+<div class="form-group">
+<label>Tipe Key</label>
+<select id="keyTypeSelect">
+<option value="premium">Premium (30 hari)</option>
+<option value="vip">VIP (90 hari)</option>
+<option value="lifetime">Lifetime</option>
+</select>
+</div>
+<div class="form-group"><label>Catatan (opsional)</label><input type="text" id="keyNote" placeholder="Buat temen, dll"></div>
+<button id="createKeyBtn" class="btn btn-success btn-block">🎁 Generate Key</button>
+<div id="newKeyResult" style="display:none; margin-top:20px;">
+<div class="key-box">
+<code id="newKeyText" class="key-text">-</code>
+<button id="copyNewKey" class="copy-btn">📋</button>
+</div>
+<p style="text-align:center; margin-top:8px; font-size:12px; color:var(--text-3);" id="newKeyInfo">-</p>
+</div>
+</div>
+</div>
 
-        <div class="admin-grid">
-            <div>
-                <div class="key-card">
-                    <div class="key-card-glow"></div>
-                    <div class="step-content">
-                        <div class="step-icon">➕</div>
-                        <h3 class="step-title">Bikin Key</h3>
-                        <p class="step-desc">Generate key premium</p>
-                        <div class="form-group">
-                            <label>Tipe Key</label>
-                            <select id="keyTypeSelect">
-                                <option value="premium">Premium (30 hari)</option>
-                                <option value="vip">VIP (90 hari)</option>
-                                <option value="lifetime">Lifetime</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Custom Durasi (hari) — opsional</label>
-                            <input type="number" id="customDays" placeholder="30" min="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Catatan (opsional)</label>
-                            <input type="text" id="keyNote" placeholder="Buat temen, dll">
-                        </div>
-                        <button id="createKeyBtn" class="btn btn-success btn-block">🎁 Generate Key</button>
-                    </div>
-                </div>
+<div class="key-card" style="margin-top:20px;">
+<div class="step-content">
+<h3 class="step-title" style="text-align:left;">📋 Key yang Udah Dibikin</h3>
+<p style="font-size:12px; color:var(--text-3); margin-bottom:12px;">Disimpen di browser kamu. Kalau ganti browser, hilang.</p>
+<div class="key-list" id="keyList"></div>
+</div>
+</div>
+</section>
 
-                <div class="key-card" id="newKeyResult" style="display: none; margin-top: 20px;">
-                    <div class="step-content">
-                        <div class="success-icon" style="width: 48px; height: 48px; font-size: 24px; margin-bottom: 12px;">✓</div>
-                        <h3 class="success-title" style="font-size: 20px;">Key Baru</h3>
-                        <div class="key-box" style="margin-top: 16px;">
-                            <code id="newKeyText" class="key-text">-</code>
-                            <button id="copyNewKey" class="copy-btn">📋</button>
-                        </div>
-                        <p class="key-info-value" id="newKeyInfo" style="text-align: center; margin-top: 8px;">-</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <div class="key-card" style="padding: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div>
-                            <h3 style="font-size: 18px; font-weight: 900;">📋 Semua Key</h3>
-                            <p style="font-size: 12px; color: var(--text-3);" id="keyCount">0 keys</p>
-                        </div>
-                        <button id="refreshBtn" class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;">🔄 Refresh</button>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="searchKey" placeholder="🔍 Cari key..." style="padding: 10px 14px;">
-                    </div>
-                    <div class="key-list" id="keyList">
-                        <p style="text-align: center; color: var(--text-3); padding: 20px;">Belum ada key</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <script src="admin.js"></script>
+<script src="admin.js"></script>
 </body>
 </html>
