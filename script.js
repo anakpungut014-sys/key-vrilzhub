@@ -1,11 +1,9 @@
 // ============================================================
-// VRILZHUB KEY SYSTEM — Logic v2.0
+// VRILZHUB KEY SYSTEM — Logic v3.0 (With Proxy)
 // ============================================================
 
 const CONFIG = {
-    ROBLOX_USER_API: "https://users.roblox.com/v1/usernames/users",
-    ROBLOX_AVATAR_API: "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=",
-    KEY_API: "https://vrilzhub-keys.anakpungut014.workers.dev",
+    KEY_API: "https://key-vrilzhub.anakpungut014.workers.dev",
 };
 
 let currentUser = null;
@@ -51,30 +49,6 @@ function showStep(step) {
     if (step === "error") els.errorStep.style.display = "block";
 }
 
-async function getRobloxUser(username) {
-    const response = await fetch(CONFIG.ROBLOX_USER_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernames: [username], excludeBannedUsers: false }),
-    });
-    if (!response.ok) throw new Error("API error");
-    const data = await response.json();
-    if (!data.data || data.data.length === 0) throw new Error("Username tidak ditemukan");
-    return data.data[0];
-}
-
-async function getRobloxAvatar(userId) {
-    try {
-        const response = await fetch(`${CONFIG.ROBLOX_AVATAR_API}${userId}&size=150x150&format=Png&isCircular=false`);
-        if (!response.ok) return "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-default-Png/150/150/AvatarHeadshot/Png/noFilter";
-        const data = await response.json();
-        if (data.data && data.data.length > 0 && data.data[0].imageUrl) return data.data[0].imageUrl;
-        return "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-default-Png/150/150/AvatarHeadshot/Png/noFilter";
-    } catch (err) {
-        return "https://tr.rbxcdn.com/30DAY-AvatarHeadshot-default-Png/150/150/AvatarHeadshot/Png/noFilter";
-    }
-}
-
 async function handleCheckUsername() {
     const username = els.usernameInput.value.trim();
     if (!username) {
@@ -92,15 +66,19 @@ async function handleCheckUsername() {
     showStep("loading");
     els.loadingText.textContent = "Mencari user...";
     try {
-        const user = await getRobloxUser(username);
-        els.loadingText.textContent = "Mengambil avatar...";
-        const avatarUrl = await getRobloxAvatar(user.id);
-        currentUser = { id: user.id, name: user.name, displayName: user.displayName, avatar: avatarUrl };
-        els.avatarImg.src = avatarUrl;
-        els.displayName.textContent = user.displayName;
-        els.username.textContent = "@" + user.name;
-        els.userId.textContent = "ID: " + user.id;
-        els.warnUser.textContent = "@" + user.name;
+        const response = await fetch(`${CONFIG.KEY_API}/api/roblox/user`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username }),
+        });
+        const data = await response.json();
+        if (!data.valid) throw new Error(data.reason || "Username tidak ditemukan");
+        currentUser = data.user;
+        els.avatarImg.src = data.user.avatar;
+        els.displayName.textContent = data.user.displayName;
+        els.username.textContent = "@" + data.user.name;
+        els.userId.textContent = "ID: " + data.user.id;
+        els.warnUser.textContent = "@" + data.user.name;
         showStep("profile");
     } catch (err) {
         els.errorMessage.textContent = err.message || "Gagal mencari user";
