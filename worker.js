@@ -1,7 +1,5 @@
 // ============================================================
 // VRILZHUB KEY SYSTEM — Worker v2.0 (Sistem B)
-// Cooldown 24 jam per user, key expired 30 menit (belum redeem),
-// 1 hari setelah redeem. Admin bisa bikin premium key.
 // ============================================================
 
 const CONFIG = {
@@ -43,7 +41,6 @@ function generateKey(prefix, segments = 3) {
     return key;
 }
 
-// ====== GENERATE FREE KEY (dengan cooldown) ======
 async function handleGenerateFree(request, env) {
     const body = await request.json();
     const username = (body.username || "").trim();
@@ -56,7 +53,6 @@ async function handleGenerateFree(request, env) {
     const userId = username.toLowerCase();
     const now = Date.now();
 
-    // Cek cooldown
     const userData = await env.DB.prepare(
         "SELECT * FROM user_keys WHERE user_id = ?"
     ).bind(userId).first();
@@ -77,13 +73,11 @@ async function handleGenerateFree(request, env) {
             });
         }
 
-        // Cek apakah key lama masih aktif & belum redeemed
         const oldKey = await env.DB.prepare(
             "SELECT * FROM keys WHERE key = ?"
         ).bind(userData.key).first();
 
         if (oldKey && oldKey.expires_at > now) {
-            // Key lama masih valid, kasih yang sama
             return json({
                 valid: true,
                 key: oldKey.key,
@@ -94,9 +88,7 @@ async function handleGenerateFree(request, env) {
         }
     }
 
-    // Bikin key baru
     const key = generateKey(CONFIG.KEY_PREFIX_FREE);
-    // Belum redeem → expired 30 menit
     const expiresAt = now + CONFIG.FREE_UNREDEEMED_MINUTES * 60 * 1000;
 
     await env.DB.prepare(
@@ -116,7 +108,6 @@ async function handleGenerateFree(request, env) {
     });
 }
 
-// ====== REDEEM (dipanggil dari script Roblox) ======
 async function handleRedeem(request, env) {
     const body = await request.json();
     const key = (body.key || "").trim();
@@ -126,36 +117,23 @@ async function handleRedeem(request, env) {
     if (!hwid) return json({ valid: false, reason: "HWID required" }, 400);
 
     const now = Date.now();
-
-    const keyData = await env.DB.prepare(
-        "SELECT * FROM keys WHERE key = ?"
-    ).bind(key).first();
+    const keyData = await env.DB.prepare("SELECT * FROM keys WHERE key = ?").bind(key).first();
 
     if (!keyData) return json({ valid: false, reason: "Key tidak ditemukan" });
-
     if (keyData.expires_at !== null && keyData.expires_at < now) {
         return json({ valid: false, reason: "Key expired" });
     }
-
-    // Cek HWID
     if (keyData.hwid && keyData.hwid !== hwid) {
         return json({ valid: false, reason: "Key terikat ke device lain" });
     }
 
-    // Kalau belum pernah redeem → set redeemed_at, perpanjang expired
     if (!keyData.redeemed_at) {
         let newExpires;
-        if (keyData.type === "free") {
-            newExpires = now + CONFIG.FREE_REDEEMED_HOURS * 3600 * 1000;
-        } else if (keyData.type === "premium") {
-            newExpires = now + CONFIG.PREM_DURATION_DAYS * 86400 * 1000;
-        } else if (keyData.type === "vip") {
-            newExpires = now + CONFIG.VIP_DURATION_DAYS * 86400 * 1000;
-        } else if (keyData.type === "lifetime") {
-            newExpires = null;
-        } else {
-            newExpires = now + 86400 * 1000;
-        }
+        if (keyData.type === "free") newExpires = now + CONFIG.FREE_REDEEMED_HOURS * 3600 * 1000;
+        else if (keyData.type === "premium") newExpires = now + CONFIG.PREM_DURATION_DAYS * 86400 * 1000;
+        else if (keyData.type === "vip") newExpires = now + CONFIG.VIP_DURATION_DAYS * 86400 * 1000;
+        else if (keyData.type === "lifetime") newExpires = null;
+        else newExpires = now + 86400 * 1000;
 
         await env.DB.prepare(
             "UPDATE keys SET redeemed_at = ?, expires_at = ?, hwid = ? WHERE key = ?"
@@ -170,7 +148,6 @@ async function handleRedeem(request, env) {
         });
     }
 
-    // Udah pernah redeem
     return json({
         valid: true,
         type: keyData.type,
@@ -179,16 +156,12 @@ async function handleRedeem(request, env) {
     });
 }
 
-// ====== VALIDATE (buat cek key tanpa redeem) ======
 async function handleValidate(request, env) {
     const body = await request.json();
     const key = (body.key || "").trim();
     if (!key) return json({ valid: false, reason: "Key required" }, 400);
 
-    const keyData = await env.DB.prepare(
-        "SELECT * FROM keys WHERE key = ?"
-    ).bind(key).first();
-
+    const keyData = await env.DB.prepare("SELECT * FROM keys WHERE key = ?").bind(key).first();
     if (!keyData) return json({ valid: false, reason: "Key tidak ditemukan" });
 
     const now = Date.now();
@@ -205,7 +178,6 @@ async function handleValidate(request, env) {
     });
 }
 
-// ====== ADMIN ======
 async function handleAdminLogin(request, env) {
     const body = await request.json();
     if (body.username === CONFIG.ADMIN_USER && body.password === CONFIG.ADMIN_PASS) {
@@ -232,7 +204,6 @@ async function handleAdminCreate(request, env) {
     if (!tokenData) return json({ valid: false, reason: "Token invalid" }, 401);
 
     const type = body.type;
-    const customDays = body.days || null;
     let prefix;
     if (type === "premium") prefix = CONFIG.KEY_PREFIX_PREM;
     else if (type === "vip") prefix = CONFIG.KEY_PREFIX_VIP;
@@ -242,8 +213,8 @@ async function handleAdminCreate(request, env) {
     const key = generateKey(prefix);
     const now = Date.now();
     let expiresAt;
-    if (type === "premium") expiresAt = now + (customDays || CONFIG.PREM_DURATION_DAYS) * 86400 * 1000;
-    else if (type === "vip") expiresAt = now + (customDays || CONFIG.VIP_DURATION_DAYS) * 86400 * 1000;
+    if (type === "premium") expiresAt = now + CONFIG.PREM_DURATION_DAYS * 86400 * 1000;
+    else if (type === "vip") expiresAt = now + CONFIG.VIP_DURATION_DAYS * 86400 * 1000;
     else expiresAt = null;
 
     await env.DB.prepare(
